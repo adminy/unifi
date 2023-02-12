@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  unifi-protect:
+    cap_add:
+      - dac_read_search
+      - sys_admin
+    security_opt:
+      - apparmor=unconfined
+    # image: markdegroot/unifi-protect-arm64
+    build: .
+    container_name: unifi-protect
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - ./storage/srv:/srv
+      - ./storage/data:/data
+      - ./storage/persistent:/persistent
+      # /data/postgresql/9.6/protect/data
+    tmpfs:
+      - /run
+      - /run/lock
+      - /tmp
+    devices:
+      - /dev/nvme2n1p1:/dev/sda1
+    privileged: true
+    network_mode: host
+    restart: unless-stopped
+    platform: linux/arm64/v8
+    cgroup_parent: docker.slice
+    # cgroup: private
+
+
+docker run -d --name unifi-protect-arm64  \
+    --privileged \
+    --cap-add SYS_ADMIN \
+    --security-opt seccomp=unconfined \
+    --tmpfs /var/run \
+    --tmpfs /var/run/lock \
+    --tmpfs /tmp \
+    -v /storage/srv:/srv \
+    -v /storage/data:/data \
+    -v /storage/persistent:/persistent \
+    --network host \
+    --cgroup-parent=docker.slice \
+    --cgroupns private \
+    unifi-protect-arm64_unifi-protect
